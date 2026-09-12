@@ -1,4 +1,4 @@
-
-class calcular 
-def sum(self, a: int, b: int) -> int:
+class Calcular:
+    @staticmethod
+    def sum(a: int, b: int) -> int:
         return a + b
