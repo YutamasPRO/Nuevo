@@ -41,3 +41,34 @@ def test_sumar_parametros_invalidos():
     response = _client().get("/sumar?a=x&b=3")
 
     assert response.status_code == 400
+
+
+def test_historial_apagado_no_esta_disponible(monkeypatch):
+    module = importlib.import_module("main")
+    monkeypatch.setattr(module, "historial_activo", lambda: False)
+
+    response = module.app.test_client().get("/historial")
+
+    assert response.status_code == 404
+
+
+def test_historial_encendido_muestra_operaciones(monkeypatch):
+    module = importlib.import_module("main")
+    module.HISTORIAL.clear()
+    monkeypatch.setattr(module, "historial_activo", lambda: True)
+    client = module.app.test_client()
+
+    client.get("/sumar?a=2&b=3")
+    response = client.get("/historial")
+
+    assert response.status_code == 200
+    assert response.get_json() == {
+        "historial": [{"operacion": "sumar", "a": 2, "b": 3, "resultado": 5}]
+    }
+
+
+def test_historial_sin_sdk_key_queda_apagado(monkeypatch):
+    module = importlib.import_module("main")
+    monkeypatch.delenv("CONFIGCAT_SDK_KEY", raising=False)
+
+    assert module.historial_activo() is False
