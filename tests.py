@@ -10,3 +10,9 @@ def test_index_module_imports():
     module = importlib.import_module("main")
 
     assert module is not None
+
+
+def test_calcular_sum():
+    from main import Calcular
+
+    assert Calcular.sum(2, 3) == 5
