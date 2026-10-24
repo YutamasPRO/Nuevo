@@ -72,3 +72,36 @@ def test_historial_sin_sdk_key_queda_apagado(monkeypatch):
     monkeypatch.delenv("CONFIGCAT_SDK_KEY", raising=False)
 
     assert module.historial_activo() is False
+
+
+def test_pagina_inicio_con_toggle_apagado(monkeypatch):
+    module = importlib.import_module("main")
+    monkeypatch.setattr(module, "dark_mode_activo", lambda: False)
+
+    response = module.app.test_client().get("/")
+    html = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'class="etiqueta inactivo"' in html
+    assert '<button id="boton" disabled>' in html
+
+
+def test_pagina_inicio_con_toggle_encendido(monkeypatch):
+    module = importlib.import_module("main")
+    monkeypatch.setattr(module, "dark_mode_activo", lambda: True)
+
+    response = module.app.test_client().get("/")
+    html = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'class="etiqueta activo"' in html
+    assert '<button id="boton" >' in html
+
+
+def test_estado_tema_refleja_el_flag(monkeypatch):
+    module = importlib.import_module("main")
+    monkeypatch.setattr(module, "dark_mode_activo", lambda: True)
+
+    response = module.app.test_client().get("/estado-tema")
+
+    assert response.get_json() == {"dark_mode_enabled": True}
