@@ -105,3 +105,24 @@ def test_estado_tema_refleja_el_flag(monkeypatch):
     response = module.app.test_client().get("/estado-tema")
 
     assert response.get_json() == {"dark_mode_enabled": True}
+
+
+def test_historial_conserva_solo_las_ultimas_5_operaciones(monkeypatch):
+    module = importlib.import_module("main")
+    module.HISTORIAL.clear()
+    monkeypatch.setattr(module, "historial_activo", lambda: True)
+    client = module.app.test_client()
+
+    for numero in range(1, 8):
+        client.get(f"/sumar?a={numero}&b=1")
+    historial = client.get("/historial").get_json()["historial"]
+
+    assert len(historial) == 5
+    assert [operacion["a"] for operacion in historial] == [3, 4, 5, 6, 7]
+
+
+def test_sumar_sin_parametro_devuelve_400():
+    response = _client().get("/sumar?a=2")
+
+    assert response.status_code == 400
+    assert "error" in response.get_json()
